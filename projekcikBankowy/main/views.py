@@ -42,3 +42,29 @@ def password_reset_request(request):
 		return redirect("password/password_reset_sent/")
 	password_reset_form = PasswordResetForm()
 	return render(request=request, template_name="password/password_reset.html", context={"password_reset_form":password_reset_form})
+
+def register(request):
+
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            email = form.cleaned_data['email']
+            id = form.cleaned_data['id']
+            password = form.cleaned_data['password1']
+            try:
+                User.objects.get(username=email)
+            except User.DoesNotExist:
+                c = Client(first_name=first_name, last_name=last_name, id=id, email=email, password=password, balance=0.0, account_number="2598 0000 2030" + str(id))
+                c.save()
+                user = User.objects.create_user(email,email=email,password=password)
+                user.save()
+                return render(request, "", {'form': form})
+            messages.error(request, "Email is already in use. Please use another Email\n")
+            return render(request, "user/register.html", {'form': form})
+    else:
+        form = RegisterForm()
+
+    return render(request, "user/register.html", {'form': form})
+
